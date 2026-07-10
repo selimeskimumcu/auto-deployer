@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+.venv/
+venv/
+
+# Environment variables
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# Tests
+.pytest_cache/
+.coverage
+
+# Operating system
+.DS_Store
+Thumbs.db
+
+# Deployment temporary files
+workspace/
+deployments/
+logs/
