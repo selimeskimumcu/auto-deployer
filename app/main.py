@@ -3,6 +3,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from app.api.routes.auth import router as auth_router
+from app.api.routes.projects import router as projects_router
 
 from app.config import settings
 from app.database import get_database_session
@@ -11,9 +12,11 @@ from app.database import get_database_session
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
+    description="Automatic deployment management platform API",
 )
 
 app.include_router(auth_router)
+app.include_router(projects_router)
 
 
 @app.get("/")
