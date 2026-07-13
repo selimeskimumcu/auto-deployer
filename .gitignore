@@ -26,3 +26,5 @@ Thumbs.db
 workspace/
 deployments/
 logs/
+__pycache__/
+*.py[cod]

@@ -2,6 +2,7 @@ from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
+from app.api.routes.auth import router as auth_router
 
 from app.config import settings
 from app.database import get_database_session
@@ -11,6 +12,8 @@ app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
 )
+
+app.include_router(auth_router)
 
 
 @app.get("/")
