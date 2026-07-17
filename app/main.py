@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from app.api.routes.auth import router as auth_router
 from app.api.routes.projects import router as projects_router
 from app.api.routes.environments import router as environments_router
+from app.api.routes.deployments import router as deployments_router
 
 from app.config import settings
 from app.database import get_database_session
@@ -19,6 +20,7 @@ app = FastAPI(
 app.include_router(auth_router)
 app.include_router(projects_router)
 app.include_router(environments_router)
+app.include_router(deployments_router)
 
 
 @app.get("/")
