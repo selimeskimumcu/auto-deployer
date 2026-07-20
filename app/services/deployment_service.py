@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timezone
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -172,3 +173,88 @@ def get_deployment_steps(
     return list(
         database.scalars(statement).all()
     )
+
+def get_deployment_step_by_name(
+    database: Session,
+    deployment_id: uuid.UUID,
+    step_name: str,
+) -> DeploymentStep | None:
+    statement = select(DeploymentStep).where(
+        DeploymentStep.deployment_id == deployment_id,
+        DeploymentStep.name == step_name,
+    )
+
+    return database.scalar(statement)
+
+
+def mark_step_running(
+    database: Session,
+    deployment_id: uuid.UUID,
+    step_name: str,
+) -> None:
+    step = get_deployment_step_by_name(
+        database=database,
+        deployment_id=deployment_id,
+        step_name=step_name,
+    )
+
+    if step is None:
+        return
+
+    step.status = "running"
+    step.started_at = datetime.now(timezone.utc)
+    step.completed_at = None
+    step.error_message = None
+
+    database.commit()
+
+
+def mark_step_succeeded(
+    database: Session,
+    deployment_id: uuid.UUID,
+    step_name: str,
+) -> None:
+    step = get_deployment_step_by_name(
+        database=database,
+        deployment_id=deployment_id,
+        step_name=step_name,
+    )
+
+    if step is None:
+        return
+
+    step.status = "succeeded"
+
+    if step.started_at is None:
+        step.started_at = datetime.now(timezone.utc)
+
+    step.completed_at = datetime.now(timezone.utc)
+    step.error_message = None
+
+    database.commit()
+
+
+def mark_step_failed(
+    database: Session,
+    deployment_id: uuid.UUID,
+    step_name: str,
+    error_message: str,
+) -> None:
+    step = get_deployment_step_by_name(
+        database=database,
+        deployment_id=deployment_id,
+        step_name=step_name,
+    )
+
+    if step is None:
+        return
+
+    step.status = "failed"
+
+    if step.started_at is None:
+        step.started_at = datetime.now(timezone.utc)
+
+    step.completed_at = datetime.now(timezone.utc)
+    step.error_message = error_message[:5000]
+
+    database.commit()

@@ -1,5 +1,10 @@
 import uuid
 from typing import Annotated
+from uuid import UUID
+
+from app.database import get_database_session
+from fastapi import Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
@@ -20,6 +25,15 @@ from app.services.deployment_service import (
     get_deployment_by_id_and_owner,
     get_deployment_steps,
     list_deployments_by_owner,
+)
+from app.schemas.deployment import DeploymentPrepareResponse
+from app.services.deployment_prepare_service import (
+    DeploymentPrepareError,
+    prepare_deployment,
+)
+from app.schemas.deployment import DockerfilePrepareResponse
+from app.services.deployment_dockerfile_service import (
+    prepare_deployment_dockerfile,
 )
 
 
@@ -134,3 +148,83 @@ def get_deployment_detail(
             for step in steps
         ],
     )
+@router.post(
+    "/{deployment_id}/prepare",
+    response_model=DeploymentPrepareResponse,
+)
+def prepare_existing_deployment(
+    deployment_id: uuid.UUID,
+    database: Annotated[
+        Session,
+        Depends(get_database_session),
+    ],
+    current_user: Annotated[
+        User,
+        Depends(get_current_user),
+    ],
+) -> DeploymentPrepareResponse:
+    deployment = get_deployment_by_id_and_owner(
+        database=database,
+        deployment_id=deployment_id,
+        owner_id=current_user.id
+    )
+
+    if deployment is None:
+        raise HTTPException(
+            status_code= status.HTTP_404_NOT_FOUND,
+            detail= "Deployment bulunamadı.",
+        )
+    
+    if deployment.status not in {
+        "queued",
+        "dailed",
+    }:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "Bu deployment mevcut durumu nedeniyle "
+                "hazırlanamaz."
+            ),
+        )
+    
+    try:
+        result = prepare_deployment(
+            database=database,
+            deployment=deployment,
+        )
+
+        return DeploymentPrepareResponse(**result)
+    
+    except DeploymentPrepareError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(error),
+        ) from error
+    
+@router.post(
+    "/{deployment_id}/dockerfile",
+    response_model=DockerfilePrepareResponse,
+)
+def prepare_dockerfile(
+    deployment_id: uuid.UUID,
+    database: Session = Depends(get_database_session),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        return prepare_deployment_dockerfile(
+            database=database,
+            deployment_id=deployment_id,
+            owner_id=current_user.id,
+        )
+
+    except ValueError as exception:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exception),
+        )
+
+    except Exception as exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Dockerfile hazırlanamadı: {exception}",
+        )

@@ -9,7 +9,13 @@ from app.api.routes.deployments import router as deployments_router
 
 from app.config import settings
 from app.database import get_database_session
+from pathlib import Path
+from app.config import WORKSPACE_ROOT
 
+WORKSPACE_ROOT.mkdir(
+    parents=True,
+    exist_ok=True,
+)
 
 app = FastAPI(
     title=settings.app_name,

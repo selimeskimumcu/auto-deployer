@@ -1,4 +1,7 @@
 import uuid
+from uuid import UUID
+
+from pydantic import BaseModel
 from datetime import datetime
 from typing import Literal
 
@@ -69,3 +72,34 @@ class DeploymentResponse(BaseModel):
 
 class DeploymentDetailResponse(DeploymentResponse):
     steps: list[DeploymentResponse]
+
+class ProjectAnalysisResponse(BaseModel):
+    project_type: str
+    framework: str | None
+    dockerfile_exists: bool
+    dockerfile_path: str | None
+    compose_file_exists: bool
+    compose_file_path: str | None
+    dependency_file: str | None
+    suggested_build_command: str | None
+    suggested_start_command: str | None
+    suggested_port: int | None
+    health_endpoint: str | None
+
+
+class DeploymentPrepareResponse(BaseModel):
+    deployment_id: uuid.UUID
+    status: str
+    repository_url: str
+    branch: str
+    commit_sha: str
+    workspace_path: str
+    analysis: ProjectAnalysisResponse
+
+
+class DockerfilePrepareResponse(BaseModel):
+    deployment_id: UUID
+    dockerfile_path: str
+    generated: bool
+    framework: str | None = None
+    project_type: str | None = None
