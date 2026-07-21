@@ -26,6 +26,7 @@ DEPLOYMENT_STEP_NAMES = [
     "PromoteVersion",
     "PersistVersion",
     "Cleanup",
+    "BuildDockerImage",
 ]
 
 

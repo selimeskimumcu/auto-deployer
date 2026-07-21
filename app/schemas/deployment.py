@@ -103,3 +103,10 @@ class DockerfilePrepareResponse(BaseModel):
     generated: bool
     framework: str | None = None
     project_type: str | None = None
+
+class DockerImageBuildResponse(BaseModel):
+    deployment_id: uuid.UUID
+    image_tag: str
+    image_id: str | None = None
+    status: str
+    build_logs: str

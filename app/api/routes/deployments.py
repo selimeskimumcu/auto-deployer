@@ -35,6 +35,8 @@ from app.schemas.deployment import DockerfilePrepareResponse
 from app.services.deployment_dockerfile_service import (
     prepare_deployment_dockerfile,
 )
+from app.schemas.deployment import DockerImageBuildResponse
+from app.services.deployment_image_service import build_deployment_image
 
 
 router = APIRouter(
@@ -228,3 +230,41 @@ def prepare_dockerfile(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Dockerfile hazırlanamadı: {exception}",
         )
+    
+@router.post(
+    "/{deployment_id}/image",
+    response_model=DockerImageBuildResponse,
+    status_code=status.HTTP_200_OK,
+)
+def build_image(
+    deployment_id: uuid.UUID,
+    database: Annotated[
+    Session,
+    Depends(get_database_session),
+],
+    current_user = Depends(get_current_user),
+):
+    try:
+        return build_deployment_image(
+            database=database,
+            deployment_id=deployment_id,
+            owner_id=current_user.id,
+        )
+    
+    except ValueError as exception:
+        raise HTTPException(
+            status_code = status.HTTP_404_NOT_FOUND,
+            detail=str(exception),
+        ) from exception
+    
+    except FileNotFoundError as exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detal=str(exception),
+        ) from exception
+    
+    except RuntimeError as exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(exception),
+        ) from exception
