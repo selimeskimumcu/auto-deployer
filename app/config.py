@@ -16,6 +16,11 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
 
+    ghcr_registry: str = "ghcr.io"
+    ghcr_username: str
+    ghcr_token: str
+    ghcr_namespace: str
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

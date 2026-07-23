@@ -110,3 +110,10 @@ class DockerImageBuildResponse(BaseModel):
     image_id: str | None = None
     status: str
     build_logs: str
+
+class DockerImagePushResponse(BaseModel):
+    deployment_id: uuid.UUID
+    local_image_tag: str
+    digest: str | None = None
+    status: str
+    push_logs: str

@@ -27,6 +27,7 @@ DEPLOYMENT_STEP_NAMES = [
     "PersistVersion",
     "Cleanup",
     "BuildDockerImage",
+    "PushDockerImage",
 ]
 
 

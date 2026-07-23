@@ -64,3 +64,6 @@ postgres_data/
 *.crt
 *.p12
 *.pfx
+.env
+.env.*
+!.env.example

@@ -38,6 +38,11 @@ from app.services.deployment_dockerfile_service import (
 from app.schemas.deployment import DockerImageBuildResponse
 from app.services.deployment_image_service import build_deployment_image
 
+from app.schemas.deployment import DockerImagePushResponse
+from app.services.deployment_registry_service import (
+    push_deployment_image,
+)
+
 
 router = APIRouter(
     prefix="/deployments",
@@ -263,6 +268,43 @@ def build_image(
             detal=str(exception),
         ) from exception
     
+    except RuntimeError as exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(exception),
+        ) from exception
+    
+@router.post(
+    "/{deployment_id}/push-image",
+    response_model=DockerImagePushResponse,
+    status_code=status.HTTP_200_OK,
+)
+def push_image(
+    deployment_id: uuid.UUID,
+    database: Annotated[
+        Session,
+        Depends(get_database_session),
+    ],
+    current_user: Annotated[
+        User,
+        Depends(get_current_user),
+    ],
+) -> DockerImagePushResponse:
+    try:
+        result = push_deployment_image(
+            database=database,
+            deployment_id=deployment_id,
+            owner_id=current_user.id,
+        )
+
+        return DockerImagePushResponse(**result)
+
+    except ValueError as exception:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exception),
+        ) from exception
+
     except RuntimeError as exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
