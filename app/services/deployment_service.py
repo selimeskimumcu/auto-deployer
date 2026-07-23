@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.models.deployment import Deployment, DeploymentStep
 from app.models.environment import Environment
 from app.models.project import Project
+from app.models.deployment import DeploymentStep
 
 
 DEPLOYMENT_STEP_NAMES = [
@@ -161,20 +162,16 @@ def get_deployment_by_id_and_owner(
 
 
 def get_deployment_steps(
-        database: Session,
-        deployment_id: uuid.UUID,
+    database: Session,
+    deployment_id: uuid.UUID,
 ) -> list[DeploymentStep]:
-    statement = (
-        select(DeploymentStep)
-        .where(
-            DeploymentStep.deployment_id == deployment_id,
+    return (
+        database.query(Deployment)
+        .filter(
+            DeploymentStep.deployment_id == deployment_id
         )
-        .order_by(DeploymentStep.step_order.asc())
-    )
-
-    return list(
-        database.scalars(statement).all()
-    )
+        .all()
+    )    
 
 def get_deployment_step_by_name(
     database: Session,

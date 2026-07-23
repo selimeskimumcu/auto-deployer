@@ -67,3 +67,19 @@ postgres_data/
 .env
 .env.*
 !.env.example
+
+# Alembic cache
+.mypy_cache/
+.pytest_cache/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Docker
+*.tar

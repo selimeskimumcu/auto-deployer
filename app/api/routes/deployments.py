@@ -42,7 +42,10 @@ from app.schemas.deployment import DockerImagePushResponse
 from app.services.deployment_registry_service import (
     push_deployment_image,
 )
-
+from app.services.deployment_service import (
+    get_deployment_by_id_and_owner,
+    get_deployment_steps,
+)
 
 router = APIRouter(
     prefix="/deployments",
@@ -149,12 +152,12 @@ def get_deployment_detail(
     )
 
     return DeploymentDetailResponse(
-        **deployment_data.model_dump(),
+        **deployment_data.model_dump(exclude={"steps"}),
         steps=[
             DeploymentStepResponse.model_validate(step)
-            for step in steps
-        ],
-    )
+            for step in deployment.steps
+    ],
+)
 @router.post(
     "/{deployment_id}/prepare",
     response_model=DeploymentPrepareResponse,
@@ -265,7 +268,7 @@ def build_image(
     except FileNotFoundError as exception:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detal=str(exception),
+            detail=str(exception),
         ) from exception
     
     except RuntimeError as exception:
